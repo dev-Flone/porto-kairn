@@ -1,0 +1,120 @@
+// use prisma-8
+
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  username     String?    @unique
+  name         String?
+  passwordHash String
+
+  notes        Note[]
+  tags         Tag[]
+  projects     Project[]
+  tasks        Task[]
+  activities   Activity[]
+  sessions     Session[]
+
+  createdAt    TimestamptzString @default(now())
+  updatedAt    temporal.updatedAtString()
+}
+
+model Note {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  title       String
+  content     String?
+
+  user        User       @relation(fields: [userId], references: [id])
+  tags        NoteTag[]
+
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+}
+
+model Tag {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  name        String
+
+  user        User       @relation(fields: [userId], references: [id])
+  notes       NoteTag[]
+
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  @@unique([userId, name])
+}
+
+model NoteTag {
+  noteId      Int
+  tagId       Int
+
+  note        Note       @relation(fields: [noteId], references: [id])
+  tag         Tag        @relation(fields: [tagId], references: [id])
+
+  @@id([noteId, tagId])
+}
+
+model Project {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  name        String
+  description String?
+
+  user        User       @relation(fields: [userId], references: [id])
+  tasks       Task[]
+
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  projectId   Int?
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     TimestamptzString?
+
+  user        User       @relation(fields: [userId], references: [id])
+  project     Project?   @relation(fields: [projectId], references: [id])
+
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+}
+
+model Session {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  tokenHash String    @unique
+  expiresAt TimestamptzString
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  createdAt TimestamptzString @default(now())
+}
+
+model Activity {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  type        String
+  metadata    String?
+
+  user        User       @relation(fields: [userId], references: [id])
+
+  createdAt   TimestamptzString @default(now())
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
